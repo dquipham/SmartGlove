@@ -8,6 +8,12 @@ public class Sms {
 	private final Date date;
 	private String receiver;
 	
+	public Sms(String phoneNumber, String message, Date date) {
+		this.number = phoneNumber;
+		this.message = message;
+		this.date = date;
+	}
+	
 	public Sms(String phoneNumber, String message, Date date, String receiver) {
 		this.number = phoneNumber;
 		this.message = message;
