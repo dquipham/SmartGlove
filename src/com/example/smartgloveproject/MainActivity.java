@@ -13,6 +13,7 @@ import android.app.ListActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.content.ContentResolver;
@@ -51,14 +52,8 @@ public class MainActivity extends ListActivity {
 				String message = c.getString(c.getColumnIndexOrThrow("body"));
 				String number  = c.getString(c.getColumnIndexOrThrow("address"));
 				Date date = new Date(Long.parseLong(c.getString(c.getColumnIndexOrThrow("date"))));
+				String displayName = getContactNameFromNumber(number);
 				
-				// see if we can't get the contact name
-				Uri phoneUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
-				Cursor phoneCursor = managedQuery(phoneUri, new String[] {PhoneLookup.DISPLAY_NAME}, null, null, null);
-				String displayName = "Unknown";
-				if (phoneCursor != null && phoneCursor.moveToFirst())
-					displayName = phoneCursor.getString(0);
-					
 				smsList.add(new Sms(number, message, date, displayName));
 				c.moveToNext();
 			}
@@ -93,8 +88,26 @@ public class MainActivity extends ListActivity {
 		
 		
 		Log.d("new sms", "got messages (" + newSms.size() + ")");
+		// ((ArrayAdapter<Sms>)getListAdapter()).insert(newSms.get(0), 0);
+		ArrayAdapter<Sms> boundData = (ArrayAdapter<Sms>)getListAdapter();
+		for (int i = 0; i < newSms.size(); i++) {
+			Sms thisSms = newSms.get(i);
+			thisSms.setContactName(getContactNameFromNumber(thisSms.getNumber()));
+			boundData.insert(newSms.get(i), i);
+		}
 	}
 
+	private String getContactNameFromNumber(String number) {
+		// see if we can't get the contact name
+		Uri phoneUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+		Cursor phoneCursor = managedQuery(phoneUri, new String[] {PhoneLookup.DISPLAY_NAME}, null, null, null);
+		String displayName = "Unknown";
+		if (phoneCursor != null && phoneCursor.moveToFirst())
+			displayName = phoneCursor.getString(0);
+			
+		return displayName;
+	}
+	
 	public void rebuildList() {
 		
 	}

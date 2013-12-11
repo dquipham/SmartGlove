@@ -45,6 +45,8 @@ public class SmsListener extends BroadcastReceiver {
 				b.putParcelableArrayList("txts", txts);
 				i.putExtra("txtContainer", b);
 				
+				// this forces both that the task is active and doesn't 
+				// re-open if it is active
 				i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 				

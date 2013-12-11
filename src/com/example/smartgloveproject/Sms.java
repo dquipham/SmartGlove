@@ -76,4 +76,8 @@ public class Sms implements Parcelable {
 	public String getContactName() {
 		return contactName;
 	}
+	
+	public void setContactName(String name) {
+		this.contactName = name;
+	}
 }
