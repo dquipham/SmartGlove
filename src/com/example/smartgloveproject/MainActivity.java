@@ -10,6 +10,7 @@ import android.os.SystemClock;
 import android.provider.ContactsContract.PhoneLookup;
 import android.app.Activity;
 import android.app.ListActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ListView;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -76,6 +78,25 @@ public class MainActivity extends ListActivity {
 		
 		// close the background service
 		Amarino.disconnect(this, DEVICE_ADDRESS);
+	}
+	
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		processNewTexts(intent);
+	}
+	
+	private void processNewTexts(Intent intent) {
+		Bundle b = intent.getExtras();
+		ArrayList<Sms> newSms = b.getBundle("txtContainer")
+									.getParcelableArrayList("txts");
+		
+		
+		Log.d("new sms", "got messages (" + newSms.size() + ")");
+	}
+
+	public void rebuildList() {
+		
 	}
 	
 	@Override
