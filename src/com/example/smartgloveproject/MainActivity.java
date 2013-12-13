@@ -16,20 +16,26 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
 import at.abraxas.amarino.Amarino;
+import at.abraxas.amarino.AmarinoIntent;
 
 public class MainActivity extends ListActivity {
 
 	// DEVICE_ADDRESS must be exactly the MAC address of the bluetooth dongle
 	private static final String TAG = "SmartGlove";
 	private static final String DEVICE_ADDRESS = "00:06:66:64:45:DA";
+	
+	// register the receiver that will listen for data from the arduino
+	private ArduinoReceiver arduinoReceiver = new ArduinoReceiver();
 	
 	// avoid sending too much data
 	final int DELAY = 1000;
@@ -40,7 +46,7 @@ public class MainActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		
 		// connect to the arduino bluetooth
-		Amarino.connect(this, DEVICE_ADDRESS);
+		//Amarino.connect(this, DEVICE_ADDRESS);
 		
 		List<Sms> smsList = new ArrayList<Sms>();
 		Uri uri = Uri.parse("content://sms/inbox");
@@ -60,19 +66,26 @@ public class MainActivity extends ListActivity {
 		}
 		
 		c.close();
-		
 		setListAdapter(new ListAdapter(this, smsList));
+	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+		Log.d("arduino", "starting receiver");
+		registerReceiver(arduinoReceiver, new IntentFilter(AmarinoIntent.ACTION_RECEIVED));
+		Amarino.connect(this, DEVICE_ADDRESS);
 	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
+		Amarino.disconnect(this, DEVICE_ADDRESS);
+		Log.d("arduino", "stopping receiver");
+		unregisterReceiver(arduinoReceiver);
 		
 		// can save state variables here, e.g.
 		// PerferenceManager.getDefaultSharedPreferences(this).edit().putInt("red", red).commit();
-		
-		// close the background service
-		Amarino.disconnect(this, DEVICE_ADDRESS);
 	}
 	
 	@Override
@@ -86,9 +99,8 @@ public class MainActivity extends ListActivity {
 		ArrayList<Sms> newSms = b.getBundle("txtContainer")
 									.getParcelableArrayList("txts");
 		
-		
 		Log.d("new sms", "got messages (" + newSms.size() + ")");
-		// ((ArrayAdapter<Sms>)getListAdapter()).insert(newSms.get(0), 0);
+		
 		ArrayAdapter<Sms> boundData = (ArrayAdapter<Sms>)getListAdapter();
 		for (int i = 0; i < newSms.size(); i++) {
 			Sms thisSms = newSms.get(i);
@@ -106,10 +118,6 @@ public class MainActivity extends ListActivity {
 			displayName = phoneCursor.getString(0);
 			
 		return displayName;
-	}
-	
-	public void rebuildList() {
-		
 	}
 	
 	@Override
@@ -154,5 +162,31 @@ public class MainActivity extends ListActivity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+	
+	public void makeArbitraryToast(String str) {
+		Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
+	}
+	
+	/***
+	 * Hold the receiver for communication from the Arduino
+	 */
+	public class ArduinoReceiver extends BroadcastReceiver {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String data = null;
+			final String address = intent.getStringExtra(AmarinoIntent.EXTRA_DEVICE_ADDRESS); // for fun, i guess
+			final int dataType = intent.getIntExtra(AmarinoIntent.EXTRA_DATA_TYPE, -1); // dunno, this is what the tutorial does
+			Log.d("arduino", "received some data");
+			if (dataType == AmarinoIntent.STRING_EXTRA) {
+				data = intent.getStringExtra(AmarinoIntent.EXTRA_DATA);
+				if (data != null) {
+					// do different things based on the data received
+					Log.d("arduino", "received data:" + data);
+					makeArbitraryToast(data);
+				}
+			}
+		}
 	}
 }
