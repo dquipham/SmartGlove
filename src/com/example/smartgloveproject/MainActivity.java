@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
+import android.telephony.SmsManager;
 import android.text.TextUtils;
 import at.abraxas.amarino.Amarino;
 import at.abraxas.amarino.AmarinoIntent;
@@ -107,6 +108,8 @@ public class MainActivity extends ListActivity {
 			thisSms.setContactName(getContactNameFromNumber(thisSms.getNumber()));
 			boundData.insert(newSms.get(i), i);
 		}
+		
+		sendUpdate(newSms.get(0));
 	}
 
 	private String getContactNameFromNumber(String number) {
@@ -168,6 +171,16 @@ public class MainActivity extends ListActivity {
 		Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
 	}
 	
+	public void sendResponseSmsToLastText() {
+		// get the last text
+		ArrayAdapter<Sms> boundData = (ArrayAdapter<Sms>)getListAdapter();
+		Sms lastTxt = boundData.getItem(0);
+		
+		Log.d("arduino", "sending response text to" + lastTxt.getNumber());
+		SmsManager smsManager = SmsManager.getDefault();
+		smsManager.sendTextMessage(lastTxt.getNumber(), null, "I'm busy presenting myself right now, I'll contact you soon!", null, null);
+	}
+	
 	/***
 	 * Hold the receiver for communication from the Arduino
 	 */
@@ -184,7 +197,8 @@ public class MainActivity extends ListActivity {
 				if (data != null) {
 					// do different things based on the data received
 					Log.d("arduino", "received data:" + data);
-					makeArbitraryToast(data);
+					//makeArbitraryToast(data);
+					sendResponseSmsToLastText();
 				}
 			}
 		}
