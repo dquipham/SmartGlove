@@ -10,4 +10,4 @@ Our Smart Glove ([Glove as an Interface](https://blogs.discovery.wisc.edu/wearab
 
 License
 ==========
-This work is licensed under the MIT license.  Please see the LICENSE file for details.  If you use any part of this code, please attribute (required) and notify (optional, but we'd like to know!) us.
+This work is licensed under the MIT license.  Please see the LICENSE file for details.  If you use any part of this code, please attribute (required) and notify (optional, but we'd like to know!) us (Alper Sarikaya and Mehdi Shokouei).
